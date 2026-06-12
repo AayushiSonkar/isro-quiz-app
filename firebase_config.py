@@ -9,8 +9,15 @@ load_dotenv()
 # ─── Firebase Admin SDK initialize ───────────────────────────────────────────
 def init_firebase():
     if not firebase_admin._apps:
-        key_path = os.getenv("FIREBASE_KEY_PATH", "firebase-key.json")
-        cred = credentials.Certificate(key_path)
+        import streamlit as st
+        if hasattr(st, 'secrets') and 'firebase_key' in st.secrets:
+            key_dict = dict(st.secrets["firebase_key"])
+            if 'private_key' in key_dict:
+                key_dict['private_key'] = key_dict['private_key'].replace('\\n', '\n')
+            cred = credentials.Certificate(key_dict)
+        else:
+            key_path = os.getenv("FIREBASE_KEY_PATH", "firebase-key.json")
+            cred = credentials.Certificate(key_path)
         firebase_admin.initialize_app(cred)
     return firestore.client()
 
